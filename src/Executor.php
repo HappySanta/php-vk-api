@@ -62,7 +62,7 @@ class Executor
         return $response;
     }
 
-    public function __construct($accessToken = null, $version = '5.80', $language = 'ru', $timeout = 600)
+    public function __construct($accessToken = null, $version = '5.126', $language = 'ru', $timeout = 600)
     {
         $this->version = $version;
         $this->timeout = $timeout;
