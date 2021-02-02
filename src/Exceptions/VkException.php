@@ -2,7 +2,8 @@
 
 namespace Vk\Exceptions;
 
-class VkException extends \Exception
-{
+use Exception;
+
+class VkException extends Exception {
 
 }

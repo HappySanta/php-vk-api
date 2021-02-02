@@ -1,42 +1,37 @@
 <?php
 
-
 namespace Vk;
-
 
 use Vk\Exceptions\VkException;
 
-abstract class SnippetImageUploader extends ImageUploader
-{
+abstract class SnippetImageUploader extends ImageUploader {
 
-    protected $token;
-    protected $ownerId;
+  protected $token;
+  protected $ownerId;
 
-    public function __construct($token, $ownerId)
-    {
-        $this->token = $token;
-        $this->ownerId = $ownerId;
-    }
+  public function __construct($token, $ownerId) {
+    $this->token   = $token;
+    $this->ownerId = $ownerId;
+  }
 
-    abstract public function getUploadServerMethod();
+  abstract public function getUploadServerMethod();
 
-    abstract public function getImageSaveMethod();
+  abstract public function getImageSaveMethod();
 
-    protected function getAccessToken()
-    {
-        return $this->token;
-    }
+  /**
+   * @param $params
+   * @return mixed
+   * @throws Exceptions\VkException
+   */
+  protected function saveImageAtVk($params) {
+    $params['owner_id'] = $this->ownerId;
+    $params['image']    = $params['photo'];
+    return $this->saveImage($params);
+  }
 
-    /**
-     * @param $params
-     * @return mixed
-     * @throws Exceptions\VkException
-     */
-    protected function saveImageAtVk($params) {
-        $params['owner_id'] = $this->ownerId;
-        $params['image'] = $params['photo'];
-        return $this->saveImage($params);
-    }
+  protected function getVkImageType($path) {
+    return null;
+  }
 
 //    /**
 //     * @param string $accessToken
@@ -52,25 +47,24 @@ abstract class SnippetImageUploader extends ImageUploader
 //        return $uploader->uploadImage($path);
 //    }
 
-    protected function getVkImageType($path) {
-        return null;
-    }
+  /**
+   * @param $imageType
+   * @return mixed
+   * @throws VkException
+   * @throws Exceptions\VkException
+   */
+  protected function getUploadServer($imageType) {
+    return $this->getUploadServerRequest([
+      'access_token' => $this->getAccessToken(),
+      'owner_id'     => $this->ownerId,
+    ]);
+  }
 
-    /**
-     * @param $imageType
-     * @return mixed
-     * @throws VkException
-     * @throws Exceptions\VkException
-     */
-    protected function getUploadServer($imageType)
-    {
-        return $this->getUploadServerRequest([
-            'access_token' => $this->getAccessToken(),
-            'owner_id' => $this->ownerId,
-        ]);
-    }
+  protected function getAccessToken() {
+    return $this->token;
+  }
 
-    protected function getFileNameInPostRequest() {
-        return 'photo';
-    }
+  protected function getFileNameInPostRequest() {
+    return 'photo';
+  }
 }

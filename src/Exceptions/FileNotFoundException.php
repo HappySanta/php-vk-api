@@ -2,7 +2,8 @@
 
 namespace Vk\Exceptions;
 
-class FileNotFoundException extends \Exception
-{
+use Exception;
+
+class FileNotFoundException extends Exception {
 
 }

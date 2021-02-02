@@ -2,30 +2,28 @@
 
 use PHPUnit\Framework\TestCase;
 
-class PassiveTest extends TestCase
-{
-    public function testUsersGet()
-    {
-        $executor = new \Vk\Executor();
-        $response = $executor->execute( new \Vk\ApiRequest('users.get', [
-            'user_ids' => '6492,2050'
-        ]) );
-        if ($response->isSuccess()) {
-            $list = $response->getResponse();
-            if (is_array($list) && count($list) == 2) {
-                foreach ($list as $user) {
-                    if (!in_array($user['id'], [6492,2050])) {
-                        throw new \Exception("Bad user id ".$response->getRawResponse());
-                    }
-                }
-                $this->assertTrue(true);
-            } else {
-                throw new \Exception("Bad response ".$response->getRawResponse());
-            }
-        } else {
-            throw new \Exception($response->getRawResponse(), $response->getCode());
+class PassiveTest extends TestCase {
+  public function testUsersGet() {
+    $executor = new \Vk\Executor();
+    $response = $executor->execute(new \Vk\ApiRequest('users.get', [
+      'user_ids' => '6492,2050',
+    ]));
+    if ($response->isSuccess()) {
+      $list = $response->getResponse();
+      if (is_array($list) && count($list) == 2) {
+        foreach ($list as $user) {
+          if (!in_array($user['id'], [6492, 2050])) {
+            throw new \Exception("Bad user id " . $response->getRawResponse());
+          }
         }
+        $this->assertTrue(true);
+      } else {
+        throw new \Exception("Bad response " . $response->getRawResponse());
+      }
+    } else {
+      throw new \Exception($response->getRawResponse(), $response->getCode());
     }
+  }
 
 //    public function testSnippetUpload() {
 //        $accessToken = '6128472c6172c3b5eb1c6b5f7d9714632527a';
