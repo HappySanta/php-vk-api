@@ -39,4 +39,21 @@ class ApiRequest {
     $this->params = $params;
   }
 
+  public function getParamsAsStringSafety(): string {
+    $params = $this->getParams();
+    if (!is_array($params)) {
+      return 'PARAMS NOT SET';
+    }
+    $exclude = [
+      'access_token' => true,
+    ];
+    $result  = [];
+    foreach ($params as $key => $value) {
+      if (!$exclude[$key]) {
+        $result[] = $key . "=" . (string)$value;
+      }
+    }
+    return implode($result);
+  }
+
 }

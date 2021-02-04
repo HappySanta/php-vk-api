@@ -4,9 +4,16 @@ use PHPUnit\Framework\TestCase;
 
 class PassiveTest extends TestCase {
   public function testUsersGet() {
+    $accessToken = getenv('TEST_ACCESS_TOKEN');
+    if (!$accessToken) {
+      $this->markTestSkipped("pass TEST_ACCESS_TOKEN to run this test");
+      return;
+    }
+
     $executor = new \Vk\Executor();
     $response = $executor->execute(new \Vk\ApiRequest('users.get', [
-      'user_ids' => '6492,2050',
+      'user_ids'     => '6492,2050',
+      'access_token' => $accessToken,
     ]));
     if ($response->isSuccess()) {
       $list = $response->getResponse();
@@ -25,28 +32,67 @@ class PassiveTest extends TestCase {
     }
   }
 
-//    public function testSnippetUpload() {
-//        $accessToken = '6128472c6172c3b5eb1c6b5f7d9714632527a';
-//        $ownerId = 165679022;
-//        $path = 'sn.png';
-//
-//        $result = \Vk\SnippetImageUploader::upload($accessToken, $ownerId, $path);
-//        print_r($result);
-//    }
+  public function testBachExecute() {
+    $userIds = [
+      1568,
+      2050,
+      3422,
+      24512,
+      25046,
+      50435,
+      66748,
+      75791,
+      92933,
+      104246,
+      106773,
+      145488,
+      162447,
+      168850,
+      216004,
+      241945,
+      261621,
+      274123,
+      382170,
+      419200,
+    ];
 
-//    public function testImageUpload() {
-//        $token = "270b2d972f25cc0a7893.....26eb44957c610ed1402725a5a2ae3";
-//
-//        $uploader = new \Vk\GroupImageUploader($token);
-//
-//        $file = "/Users/i.nedzvetskiy/Downloads/xUvX2Ktzu18.jpg";
-//
-//        $id = $uploader->uploadImage($file);
-//
-//        $this->assertTrue( is_string($id) && mb_strlen($id) >=1 );
-//
-//        $url = $uploader->getImageUrl($id, "50x50");
-//
-//        $this->assertTrue( is_string($url) && mb_strlen($url) >=20 );
-//    }
+    $accessToken = getenv('TEST_ACCESS_TOKEN');
+    if (!$accessToken) {
+      $this->markTestSkipped("pass TEST_ACCESS_TOKEN to run this test");
+      return;
+    }
+
+    $executor = new \Vk\Executor($accessToken);
+
+    $results = $executor->executeBatch(array_map(function($userId) {
+      return new \Vk\ApiRequest("users.get", ['user_ids' => $userId]);
+    }, $userIds));
+
+    foreach ($results as $index => $res) {
+      if (!($res instanceof \Vk\ApiResponse)) {
+        throw new Exception("res not ApiResponse");
+      }
+      $this->assertTrue($res->isSuccess(), "$index $userIds[$index] not success " . $res->getMessage());
+
+      $expectUserId = $userIds[$index];
+      $this->assertEquals($expectUserId, $res->getData()[0]['id'], $index . " not equal id");
+    }
+
+  }
+
+  public function testResponseIsHtml() {
+    $executor = new \Vk\Executor("", "5.126", "ru", 1, "https://yandex.com");
+    $res      = $executor->call("users.get", []);
+    $this->assertFalse($res->isSuccess());
+    $this->assertEquals(500, $res->getCode());
+  }
+
+  public function testNetworkTimeout() {
+    $executor = new \Vk\Executor("", "5.126", "ru", 1, "https://yandex.com:4444");
+
+    $res = $executor->call("users.get", []);
+
+    $this->assertFalse($res->isSuccess());
+    $this->assertEquals(500, $res->getCode());
+  }
 }

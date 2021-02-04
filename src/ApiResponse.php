@@ -2,6 +2,8 @@
 
 namespace Vk;
 
+use Psr\Http\Message\ResponseInterface;
+
 class ApiResponse {
   protected $request;
   protected $response = null;
@@ -11,6 +13,12 @@ class ApiResponse {
   protected $code = 0;
   protected $captchaSig = null;
   protected $captchaImg = null;
+  /**
+   * Признак того что ответ получен и это именно шибка от апи
+   * а не ошибка сети или что-то иное
+   * @var bool
+   */
+  protected bool $isApiError = false;
 
   public function __construct(ApiRequest $request) {
     $this->request = $request;
@@ -32,7 +40,6 @@ class ApiResponse {
 
   /**
    * @return mixed
-   * @deprecated
    */
   public function getResponse() {
     return $this->response;
@@ -62,8 +69,23 @@ class ApiResponse {
   /**
    * @param mixed $raw
    */
-  public function setRawResponse($raw) {
-    $this->rawResponse = $raw;
+  public function setRawResponse(?ResponseInterface $raw) {
+    $header = [
+      '> method: ' . $this->request->getMethod(),
+      '> params: ' . $this->request->getParamsAsStringSafety(),
+
+    ];
+
+    if ($raw) {
+      $header[] = '< status: ' . $raw->getStatusCode();
+      $header[] = '< protocol: ' . $raw->getProtocolVersion();
+      foreach ($raw->getHeaders() as $name => $value) {
+        $header[] = '< ' . $name . ": " . implode(', ', $value);
+      }
+      $payload  = $raw->getBody()->getContents();
+      $header[] = '< ' . $payload;
+    }
+    $this->rawResponse = implode(" \n", $header);
   }
 
   /**
@@ -122,6 +144,30 @@ class ApiResponse {
 
   public function setCaptchaImg($value) {
     $this->captchaImg = $value;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isApiError(): bool {
+    return $this->isApiError;
+  }
+
+  /**
+   * @param bool $isApiError
+   */
+  public function setIsApiError(bool $isApiError): void {
+    $this->isApiError = $isApiError;
+  }
+
+  public function canBeRetry($with5xx = false): bool {
+    if (Executor::isSoftErrorCode($this->code)) {
+      return true;
+    }
+    if ($with5xx && $this->code >= 500 && $this->code <= 599) {
+      return true;
+    }
+    return false;
   }
 
 }
