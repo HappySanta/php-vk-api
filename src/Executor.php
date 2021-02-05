@@ -110,7 +110,7 @@ class Executor {
         }
         $status  = $response->getStatusCode();
         $payload = $response->getBody()->getContents();
-        $apiResponse->setRawResponse($payload);
+        $apiResponse->setRawResponse($response);
         $apiResponse->setCode($status);
         return $this->processPayload($payload, $apiResponse);
       } else {
@@ -190,7 +190,7 @@ class Executor {
     }
     $json     = json_decode($result, true);
     $response = new ApiResponse(new ApiRequest("auth", []));
-    $response->setRawResponse($result);
+    $response->setRawResponse(null);
     if (!$json && !is_array($json)) {
       $response->setCode(500);
       return $response;

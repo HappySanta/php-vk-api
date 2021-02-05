@@ -49,7 +49,7 @@ class ApiRequest {
     ];
     $result  = [];
     foreach ($params as $key => $value) {
-      if (!$exclude[$key]) {
+      if (!isset($exclude[$key])) {
         $result[] = $key . "=" . (string)$value;
       }
     }
